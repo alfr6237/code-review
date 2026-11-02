@@ -57,11 +57,12 @@ static shopping_cart_t *warehouse_find_shopping_cart(warehouse_t *wh, size_t car
     while (!ioopm_list_iterator_at_end(it))
     {
         elem_t value = ioopm_list_iterator_current(it);
-        shopping_cart_t *value_cart;
-
+        shopping_cart_t *value_cart = value.p;
         if (value_cart->id == cart_id)
+        ioopm_list_iterator_destroy(it);
         return value_cart;
       }
+      ioopm_list_iterator_destroy(it);
       return NULL;
 }
 
@@ -96,28 +97,19 @@ bool warehouse_add_to_cart(warehouse_t *wh, size_t cart_id,
 //quant cant be less then or equal to zero
   assert(quant_assert(quant));
  //Check if merch exists
-   assert(warehouse_merch_exists(wh, merch));
+  assert(warehouse_merch_exists(wh, merch));
 
   shopping_cart_t *cart = warehouse_find_shopping_cart(wh, cart_id);
-   ioopm_list_iterator_t *it;
-       ioopm_list_iterator_create(wh->carts->carts_list);
 
-    while (!ioopm_list_iterator_at_end(it))
-    {
-       elem_t value = ioopm_list_iterator_current(it);
-        shopping_cart_t *value_cart = value.p;
-
-            ioopm_list_iterator_destroy(it);
-            return true;
-            
-         }
-
-        ioopm_list_iterator_advance(it);
-    
+  if (cart == NULL) {
     //cart doesnt exist
-    ioopm_list_iterator_destroy(it);
     return false;
+  } else {   //cart exists, insert (hash_table will just replace it if already exits)
+       ioopm_hash_table_insert(cart->items, string_elem(merch), size_elem(quant));
+       return true;
 }
+}
+
 
 
 bool warehouse_remove_from_cart(warehouse_t *wh, size_t cart_id,
