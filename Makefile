@@ -3,7 +3,7 @@ GPROF_OPTIONS  = -Wall -Wextra -pedantic -g -pg
 FLAGS = -g -Wall -Wextra --coverage
 PFLAGS = -g -Wall -Wextra -pg
 # add cart_calc.o again
-OBJECTS = hash_table_iterator.o hash_table.o linked_list.o list_iterator.o merch_stock.o
+OBJECTS = hash_table_iterator.o hash_table.o linked_list.o list_iterator.o merch_stock.o cart_calc.o
 COV = webstore_backend.gcda 
 
 vpath %.c generic_utils	

@@ -209,16 +209,51 @@ void test_edit_merch_same_stock()
 
 // // }
 
-// void test_add_to_cart() {
-//   warehouse_t *warehouse = warehouse_create();
-//   warehouse_create_cart();
-//   warehouse_add_to_cart();
-//   warehouse_remove_cart();
-// }
+void test_add_to_cart() {
+  //initilazing
+  warehouse_t *warehouse = warehouse_create();
+  shopping_cart_t *cart = warehouse_create_cart(warehouse);
+  warehouse_add_merch(warehouse, "Bohnanza", "Epic board game", 200);
+    size_t add_quant = 10;
+    merch_t *merch = warehouse_find_merch(warehouse, "Bohnanza");
+  warehouse_replenish_stock(warehouse, "A10", merch, add_quant);
+  //add to cart
+  warehouse_add_to_cart(warehouse, cart->id, "Bohnanza", 10);
+  
+  size_t result = 0;
+  ioopm_hash_table_lookup(cart->items, string_elem("Bohnanza"), &size_elem(result));
+  CU_ASSERT_EQUAL(result, 10);
 
-// void test_add_to_cart() {
-//   warehouse_t *warehouse = warehouse_create();
-//   warehouse_create_cart();
+  //remove from cart and destroy the warehouse
+  warehouse_remove_from_cart(warehouse, cart->id, "Bohanza", 5);
+  warehouse_remove_cart(warehouse, cart->id);
+  warehouse_destroy(warehouse);
+}
+
+// void test_add_several_to_cart() {
+//    warehouse_t *warehouse = warehouse_create();
+//   shopping_cart_t *cart = warehouse_create_cart(warehouse);
+//   warehouse_add_merch(warehouse, "Bohnanza", "Epic board game", 200);
+//   warehouse_add_merch(warehouse, "Catan", "Epic board game", 200);
+//   warehouse_add_merch(warehouse, "Small World", "Epic board game", 200);
+//   size_t add_quant = 0;
+//   warehouse_replenish_stock(warehouse, "A10", "Bohnanza", add_quant);
+//   warehouse_replenish_stock(warehouse, "A10", "Catan", add_quant);
+//   warehouse_replenish_stock(warehouse, "A10", "Small World", add_quant);
+//   //add to cart
+//    warehouse_add_to_cart(warehouse, cart->id, "Bohnanza", add_quant);
+//    warehouse_add_to_cart(warehouse, cart->id, "Catan", add_quant);
+//    warehouse_add_to_cart(warehouse, cart->id, "Small World", add_quant);
+//    ioopm_hash_table_iterator_t *it = ioopm_hash_table_iterator(cart->items);
+   
+//    while (!ioopm_hash_table_iterator_at_end(it)) {
+//    CU_ASSERT_EQUAL(ioopm_hash_table_iterator_current_value(it).si, add_quant);
+//    ioopm_list_iterator_advance(it);
+//    }
+//    ioopm_list_iterator_destroy(it);
+//    warehouse_remove_cart()
+
+
 //   warehouse_add_to_cart();
 //   warehouse_remove_cart();
 // }
@@ -254,6 +289,7 @@ int main() {
     (CU_add_test(my_test_suite, "edit merch", test_edit_merch) == NULL) ||
     (CU_add_test(my_test_suite, "replenish stock", test_replenish_stock) == NULL) ||
     (CU_add_test(my_test_suite, "edit merch and replenish stock, check stock property", test_edit_merch_same_stock) == NULL) ||
+    (CU_add_test(my_test_suite, "add 1 to cart", warehouse_add_to_cart) == NULL) ||
     0
   )
     {
