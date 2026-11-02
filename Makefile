@@ -8,6 +8,7 @@ OBJECTS = hash_table_iterator.o hash_table.o linked_list.o list_iterator.o merch
 vpath %.c generic_utils	
 vpath %.c business_logic
 vpath %.c tests
+vpath %.c user_interface
 
 # all: webstore_backend_tests
 # 	./webstore_backend_tests
@@ -17,6 +18,12 @@ vpath %.c tests
 
 %_tests: $(OBJECTS) %_tests.c
 	$(CC) $(FLAGS) $^ -lcunit -o $@
+
+program: main.o ui.o $(OBJECTS)
+	$(CC) $(FLAGS) $^ -o $@
+
+run: program
+	./program
 
 test: webstore_backend_tests
 	./webstore_backend_tests
@@ -30,7 +37,7 @@ coverage: webstore_backend_tests
 	rm -f *.gcda *.gcov
 	./webstore_backend_tests
 	gcov -b $(COV_TARGET).o
-	gcovr -r . --filter '.*$(COV_TARGET)\.c' --branches
+	gcovr -r . --filter '.*$(COV_TARGET)\.c' --txt-metric branch
 
 # gprof: clean
 # 	$(CC) $(GPROF_OPTIONS) generic_utils/freq_count.c generic_utils/hash_table.c generic_utils/hash_table_iterator.c -o freq_new
@@ -41,4 +48,4 @@ clean:
 	rm -f *.o webstore_backend_tests
 	rm -f *.gcda *.gcno *.gcov gmon.out
 
-.PHONY: test valgrind coverage clean
+.PHONY: test valgrind coverage clean program

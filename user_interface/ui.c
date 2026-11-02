@@ -7,6 +7,8 @@
 #include "../business_logic/webstore_backend.h"
 #include "../business_logic/webstore_types.h"
 #include "../generic_types/hash_table_iterator.h"
+#include "../generic_types/linked_list.h"
+#include "../generic_types/list_iterator.h"
 #include "../generic_types/utils.h"
 
 // TODO: alfabetisk ordning hade varit najs att få till
@@ -17,12 +19,12 @@ void warehouse_list_merch(warehouse_t *wh)
   ioopm_hash_table_t *merch_ht = wh->merch_ht;
   ioopm_hash_table_iterator_t *merch_it = ioopm_hash_table_iterator_create(merch_ht);
   size_t total_amount_of_merch = merch_ht->size; // FIXME: konvertera size_t till int eller vice versa, casta
-  int listed_merch_count = 1;
+  size_t listed_merch_count = 1;
 
   while (!ioopm_hash_table_iterator_at_end(merch_it) && listed_merch_count <= total_amount_of_merch)
   {
     char *current_key = ioopm_hash_table_iterator_current_key(merch_it).s;
-    printf("%d. %s\n", listed_merch_count, current_key); // ersätta d med size_t kompatibel
+    printf("%zu. %s\n", listed_merch_count, current_key); // ersätta d med size_t kompatibel
     ioopm_hash_table_iterator_advance(merch_it);
 
     if (listed_merch_count % 20 == 0)
@@ -38,8 +40,27 @@ void warehouse_list_merch(warehouse_t *wh)
   }  
 }
 
+// TODO: alphabetical order 
+void warehouse_show_stock(warehouse_t *wh, char *key)
+{
+  merch_t *merch = warehouse_find_merch(wh, key);
+  ioopm_list_iterator_t *it = ioopm_list_iterator_create(merch->locs);
+
+  while (!ioopm_list_iterator_at_end(it))
+  {
+    link_t *current_link = ioopm_list_iterator_current(it).p;
+    shelf_t *current_shelf = current_link->element.p;
+    int quant = current_shelf->quant;
+    char *shelf = current_shelf->shelf;
+    printf("Shelf: %s. Stock: %d\n", shelf, quant);
+    ioopm_list_iterator_advance(it);
+  }
+
+  ioopm_list_iterator_destroy(it);
+}
+
 // ganska noobig funktion, skulle nog kunna optimeras
-bool correct_letter(char *str)
+static bool correct_letter(char *str)
 {
     if (strlen(str) != 1)
     {
@@ -63,9 +84,9 @@ bool correct_letter(char *str)
     return false;
 }
 
-int toupper_modified(char *str)
+static int toupper_modified(char *str)
 {
-    if (str == "+" || str == "-" || str == "=")
+    if (strcmp(str, "+") == 0 || strcmp(str, "-") == 0 || strcmp(str, "=") == 0)
     {
         return atoi(str);
     }
@@ -74,7 +95,7 @@ int toupper_modified(char *str)
     return toupper(*str);
 }
 
-char ask_question_menu(void)
+static char menu_answer_char(void)
 {
     char *menu = "[A] Add Merchandise\n"
                  "[L] List Merchandise\n"
@@ -102,7 +123,7 @@ void event_loop(warehouse_t *warehouse)
 
     do
     {
-        answer = ask_question_menu();
+        answer = menu_answer_char();
 
         // TODO: 
         // - hur ska vi tänka kring stora/små bokstäver på input? 
@@ -121,7 +142,7 @@ void event_loop(warehouse_t *warehouse)
             puts("Add Merch");
             char *name = ask_question_string("Name: ");
             char *description = ask_question_string("Description: ");
-            int *price = ask_question_int("Price: ");
+            int price = ask_question_int("Price: ");
             warehouse_add_merch(warehouse, name, description, price);
             break;
 
@@ -140,7 +161,7 @@ void event_loop(warehouse_t *warehouse)
             }
             printf("Do you want to remove %s?\n", merch);
             char *choice = ask_question_string("Y/N: ");
-            if (choice == "Y" || choice == "y")
+            if (strcmp(choice, "Y") == 0 || strcmp(choice, "y") == 0)
             {
                 bool removed = warehouse_remove_merch(warehouse, merch);
                 if (removed) printf("%s removed\n", merch); // FIXME: ta bort sen för den här checken finns i funktionen redan
@@ -227,16 +248,4 @@ void event_loop(warehouse_t *warehouse)
         
     } while (answer != 'Q');
     
-}
-
-// FIXME: main borde kanske vara i en fil som bara heter main.c
-// så låter man hela den här modulen med ui grejer vara separat?
-int main(void)
-{
-    warehouse_t *warehouse = warehouse_create();
-    // TODO: skapa några varor till databasen
-    event_loop(warehouse);
-    warehouse_destroy(warehouse);
-    
-    return 0; 
 }
