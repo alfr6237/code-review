@@ -155,34 +155,6 @@ void warehouse_add_merch(warehouse_t *wh, char *name, char *desc, size_t price)
     ioopm_hash_table_insert(wh->merch_ht, string_elem(name), ptr_elem(merch));
 }
 
-// TODO: alfabetisk ordning hade varit najs att få till
-// !! flyttar den här funktionen till ui.c
-// void warehouse_list_merch(warehouse_t *wh)
-// {
-//   ioopm_hash_table_t *merch_ht = wh->merch_ht;
-//   ioopm_hash_table_iterator_t *merch_it = ioopm_hash_table_iterator_create(merch_ht);
-//   size_t total_amount_of_merch = merch_ht->size; // FIXME: konvertera size_t till int eller vice versa
-//   int listed_merch_count = 1;
-
-//   while (!ioopm_hash_table_iterator_at_end(merch_it) && listed_merch_count <= total_amount_of_merch)
-//   {
-//     char *current_key = ioopm_hash_table_iterator_current_key(merch_it).s;
-//     printf("%d. %s\n", listed_merch_count, current_key);
-//     ioopm_hash_table_iterator_advance(merch_it);
-
-//     if (listed_merch_count % 20 == 0)
-//     {
-//       char *choice = ask_question_string("Continue? [Y/N] ");
-//       if (strcmp(choice, "N") == 0 || strcmp(choice, "n") == 0)
-//       {
-//         puts("Returning to main menu...");
-//         break;
-//       }  
-//     }
-//     listed_merch_count++;
-//   }  
-// }
-
 bool warehouse_remove_merch(warehouse_t *wh, char *key)
 {
   merch_t *merch = warehouse_find_merch(wh, key);
@@ -274,8 +246,9 @@ shelf_t *warehouse_find_shelf(ioopm_list_t *list, char *shelf)
 void warehouse_replenish_stock(warehouse_t *wh, char *shelf, merch_t *merch, size_t add_quant)
 {
   shelf_t *shelf_to_replenish = warehouse_find_shelf(merch->locs, shelf);
+  bool shelf_exists = ioopm_hash_table_has_key(wh->location_ht, string_elem(shelf));
 
-  if (shelf_to_replenish == NULL) // shelf finns inte
+  if (shelf_to_replenish == NULL && !shelf_exists) // shelf finns inte
   {
     shelf_t *new_shelf = calloc(1, sizeof(shelf_t)); 
     new_shelf->shelf = shelf;
