@@ -104,7 +104,6 @@ bool warehouse_remove_from_cart(warehouse_t *wh, size_t cart_id, char *merch, si
 /// @brief calculate cost of a shopping cart 
 /// @param cart_ht hash_table where all shopping carts are stored
 /// @param cart desired shopping cart
-// FIXME: is size_t always an integer?
 /// @return the cost (positive integer) of all merch in the shopping cart
 size_t warehouse_calculate_cost(warehouse_t *wh, size_t cart_id);
 

@@ -107,7 +107,9 @@ bool warehouse_add_to_cart(warehouse_t *wh, size_t cart_id,
  //Check if merch exists
   assert(warehouse_merch_exists(wh, merch));
 
-  shopping_cart_t *cart = warehouse_find_shopping_cart(wh, cart_id, 0);
+  size_t index = 0;
+
+  shopping_cart_t *cart = warehouse_find_shopping_cart(wh, cart_id, &index);
 
   if (cart == NULL) {
     //cart doesnt exist
@@ -176,7 +178,7 @@ size_t warehouse_calculate_cost(warehouse_t *wh, size_t cart_id)
   size_t index = 0;
   shopping_cart_t *cart = warehouse_find_shopping_cart(wh, cart_id, &index);
   ioopm_hash_table_iterator_t *it = ioopm_hash_table_iterator_create(cart->items);
-  while (!ioopm_hash_table_iterator_at_end) {
+  while (!ioopm_hash_table_iterator_at_end(it)) {
     //find value and qunatity of merch
     elem_t quantity = ioopm_hash_table_iterator_current_value(it);
     elem_t merch = ioopm_hash_table_iterator_current_key(it);
@@ -189,25 +191,28 @@ size_t warehouse_calculate_cost(warehouse_t *wh, size_t cart_id)
     price_cart = price_cart + price_with_quant;
     ioopm_hash_table_iterator_advance(it);
   }
+  ioopm_hash_table_iterator_destroy(it);
   return price_cart;
 }
 
-static void remove_shelf_quant(warehouse_t *wh, elem_t merch, elem_t quantity, size_t remove) {
+static void remove_shelf_quant(warehouse_t *wh, elem_t merch, elem_t quantity, size_t *remove) {
 
       merch_t *actual_merch = warehouse_find_merch(wh, merch.s);
       ioopm_list_t *list_locs = actual_merch->locs;
       ioopm_list_iterator_t *lit = ioopm_list_iterator_create(list_locs);
      //keeps track of removed elements
-    while ((!ioopm_list_iterator_at_end(lit)) || remove == quantity.si) {
+    while ((!ioopm_list_iterator_at_end(lit)) && *remove < quantity.si) {
 
       elem_t current_shelf = ioopm_list_iterator_current(lit);
       shelf_t *shelf = current_shelf.p;
       
-      while (shelf->quant != 0) {
+      while (shelf->quant > 0 && *remove < quantity.si) {
         shelf->quant--;
-        remove++;
+        (*remove)++;
       }
+      ioopm_list_iterator_advance(lit);
       }
+      ioopm_list_iterator_destroy(lit);
 }
 
 size_t warehouse_checkout(warehouse_t *wh, size_t cart_id)
@@ -220,18 +225,24 @@ size_t warehouse_checkout(warehouse_t *wh, size_t cart_id)
      //search cart for merch to find quantity
         while (!ioopm_hash_table_iterator_at_end(it)) {
     size_t remove = 0;
-    elem_t merch = ioopm_hash_table_iterator_current_key(it);
+    elem_t key = ioopm_hash_table_iterator_current_key(it);
     elem_t quantity = ioopm_hash_table_iterator_current_value(it);
-    merch_t *merch_type = merch.p;
-
-
-    remove_shelf_quant(wh, merch, quantity, remove);
+    merch_t *merch_type = warehouse_find_merch(wh, key.s);
+    
+    if (quantity.si <= merch_type->stock) {
+    remove_shelf_quant(wh, key, quantity, &remove);
     if (remove == quantity.si) {
-      merch_type->stock = quantity.si;
-      ioopm_hash_table_iterator_advance(it);
+    merch_type->stock -= remove;
+    ioopm_hash_table_iterator_advance(it);
     } else {
-      return 0;
+      ioopm_hash_table_iterator_destroy(it);
+      return 1;
+    }
+} else {
+      ioopm_hash_table_iterator_destroy(it);
+      return -1;
     }
 }
-warehouse_remove_cart(wh, cart_id, &index);
+    warehouse_remove_cart(wh, cart_id, &index);
+    ioopm_hash_table_iterator_destroy(it);
 }
