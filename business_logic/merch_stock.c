@@ -15,7 +15,7 @@
 
 #define PAGE_SIZE 20
 
-// String keys
+// // String keys
 size_t string_knr_hash(elem_t key)
 {
   char *str = key.s;
@@ -88,7 +88,6 @@ static void warehouse_destroy_all_merch(warehouse_t *wh) {
       }
 
       free(merch);
-
       ioopm_hash_table_iterator_advance(it);
   }
 
@@ -155,34 +154,6 @@ void warehouse_add_merch(warehouse_t *wh, char *name, char *desc, size_t price)
     ioopm_hash_table_insert(wh->merch_ht, string_elem(name), ptr_elem(merch));
 }
 
-// TODO: alfabetisk ordning hade varit najs att få till
-// !! flyttar den här funktionen till ui.c
-// void warehouse_list_merch(warehouse_t *wh)
-// {
-//   ioopm_hash_table_t *merch_ht = wh->merch_ht;
-//   ioopm_hash_table_iterator_t *merch_it = ioopm_hash_table_iterator_create(merch_ht);
-//   size_t total_amount_of_merch = merch_ht->size; // FIXME: konvertera size_t till int eller vice versa
-//   int listed_merch_count = 1;
-
-//   while (!ioopm_hash_table_iterator_at_end(merch_it) && listed_merch_count <= total_amount_of_merch)
-//   {
-//     char *current_key = ioopm_hash_table_iterator_current_key(merch_it).s;
-//     printf("%d. %s\n", listed_merch_count, current_key);
-//     ioopm_hash_table_iterator_advance(merch_it);
-
-//     if (listed_merch_count % 20 == 0)
-//     {
-//       char *choice = ask_question_string("Continue? [Y/N] ");
-//       if (strcmp(choice, "N") == 0 || strcmp(choice, "n") == 0)
-//       {
-//         puts("Returning to main menu...");
-//         break;
-//       }  
-//     }
-//     listed_merch_count++;
-//   }  
-// }
-
 bool warehouse_remove_merch(warehouse_t *wh, char *key)
 {
   merch_t *merch = warehouse_find_merch(wh, key);
@@ -207,12 +178,6 @@ void warehouse_edit_merch(warehouse_t *wh, char *key, char *new_name, char* new_
 
   if (strcmp(key, new_name) != 0)
   {
-    if (warehouse_find_merch(wh, new_name) != NULL)
-    {
-      // puts("Merch with new suggested name already exists.\n");
-      return;
-    }
-
     merch_t *new_merch = ioopm_hash_table_remove(wh->merch_ht, string_elem(key)).p;
     new_merch->name = new_name;
     new_merch->desc = new_desc;
@@ -224,25 +189,6 @@ void warehouse_edit_merch(warehouse_t *wh, char *key, char *new_name, char* new_
     merch->desc = new_desc;
     merch->price = new_price;
   }
-}
-
-// TODO: alphabetical order 
-void warehouse_show_stock(warehouse_t *wh, char *key)
-{
-  merch_t *merch = warehouse_find_merch(wh, key);
-  ioopm_list_iterator_t *it = ioopm_list_iterator_create(merch->locs);
-
-  while (!ioopm_list_iterator_at_end(it))
-  {
-    link_t *current_link = ioopm_list_iterator_current(it).p;
-    shelf_t *current_shelf = current_link->element.p;
-    int quant = current_shelf->quant;
-    char *shelf = current_shelf->shelf;
-    printf("Shelf: %s. Stock: %d\n", shelf, quant);
-    ioopm_list_iterator_advance(it);
-  }
-
-  ioopm_list_iterator_destroy(it);
 }
 
 shelf_t *warehouse_find_shelf(ioopm_list_t *list, char *shelf)

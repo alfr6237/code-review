@@ -9,28 +9,29 @@
 #include <string.h>
 #include <stdlib.h>
 
-static bool string_eq(elem_t a, elem_t b)
-{
-   if (a.s == NULL || b.s == NULL) {
-        return a.s == b.s;
-    }
-    return strcmp(a.s, b.s) == 0;
-}
+// FIXME: städa bort? 
+// static bool string_eq(elem_t a, elem_t b)
+// {
+//    if (a.s == NULL || b.s == NULL) {
+//         return a.s == b.s;
+//     }
+//     return strcmp(a.s, b.s) == 0;
+// }
 
-static size_t string_knr_hash(elem_t key)
-{
-  if (key.s == NULL) {
-        return 0;
-    }
-  char *str = key.s;
-  size_t result = 0;
-  while (*str != '\0')
-  {
-    result = result * 31 + ((unsigned char) *str);
-    str++;
-  }
-  return result;
-}
+// static size_t string_knr_hash(elem_t key)
+// {
+//   if (key.s == NULL) {
+//         return 0;
+//     }
+//   char *str = key.s;
+//   size_t result = 0;
+//   while (*str != '\0')
+//   {
+//     result = result * 31 + ((unsigned char) *str);
+//     str++;
+//   }
+//   return result;
+// }
 
 int init_suite(void) {
   // Change this function if you want to do something *before* you
@@ -127,6 +128,10 @@ void test_edit_merch() {
   CU_ASSERT_TRUE(strcmp(merch2->name, "Catan") == 0);
   CU_ASSERT_TRUE(strcmp(merch2->desc, "New Description") == 0);
   CU_ASSERT_TRUE(merch2->price == new_price);
+
+  // case 3, merch does not exist
+  warehouse_edit_merch(warehouse, "Yatzy", "Catan", "New Description", new_price);
+  CU_ASSERT_FALSE(ioopm_hash_table_has_key(warehouse->merch_ht, string_elem("Yatzy")));
   
   warehouse_destroy(warehouse);
 }

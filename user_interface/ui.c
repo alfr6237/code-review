@@ -7,6 +7,8 @@
 #include "../business_logic/webstore_backend.h"
 #include "../business_logic/webstore_types.h"
 #include "../generic_types/hash_table_iterator.h"
+#include "../generic_types/linked_list.h"
+#include "../generic_types/list_iterator.h"
 #include "../generic_types/utils.h"
 
 // TODO: alfabetisk ordning hade varit najs att få till
@@ -17,12 +19,12 @@ void warehouse_list_merch(warehouse_t *wh)
   ioopm_hash_table_t *merch_ht = wh->merch_ht;
   ioopm_hash_table_iterator_t *merch_it = ioopm_hash_table_iterator_create(merch_ht);
   size_t total_amount_of_merch = merch_ht->size; // FIXME: konvertera size_t till int eller vice versa, casta
-  int listed_merch_count = 1;
+  size_t listed_merch_count = 1;
 
   while (!ioopm_hash_table_iterator_at_end(merch_it) && listed_merch_count <= total_amount_of_merch)
   {
     char *current_key = ioopm_hash_table_iterator_current_key(merch_it).s;
-    printf("%d. %s\n", listed_merch_count, current_key); // ersätta d med size_t kompatibel
+    printf("%zu. %s\n", listed_merch_count, current_key); // ersätta d med size_t kompatibel
     ioopm_hash_table_iterator_advance(merch_it);
 
     if (listed_merch_count % 20 == 0)
@@ -38,43 +40,26 @@ void warehouse_list_merch(warehouse_t *wh)
   }  
 }
 
-// ganska noobig funktion, skulle nog kunna optimeras
-bool correct_letter(char *str)
+// TODO: alphabetical order 
+void warehouse_show_stock(warehouse_t *wh, char *key)
 {
-    if (strlen(str) != 1)
-    {
-        return false;
-    }
+  merch_t *merch = warehouse_find_merch(wh, key);
+  ioopm_list_iterator_t *it = ioopm_list_iterator_create(merch->locs);
 
-    char *letters = "AaLlDdEeSsPpCcRr+-=OoQq";
-    char current = *letters; 
+  while (!ioopm_list_iterator_at_end(it))
+  {
+    link_t *current_link = ioopm_list_iterator_current(it).p;
+    shelf_t *current_shelf = current_link->element.p;
+    int quant = current_shelf->quant;
+    char *shelf = current_shelf->shelf;
+    printf("Shelf: %s. Stock: %d\n", shelf, quant);
+    ioopm_list_iterator_advance(it);
+  }
 
-    while (current != '\0')
-    {
-        if (current == *str)
-        {
-            return true;
-        } 
-
-        letters++;
-        current = *letters;
-    }
-
-    return false;
+  ioopm_list_iterator_destroy(it);
 }
 
-int toupper_modified(char *str)
-{
-    if (str == "+" || str == "-" || str == "=")
-    {
-        return atoi(str);
-    }
-
-    // (gamla koden) int letter = toupper(*str); FIXME: ersätt med gamla koden om nuvarande return inte funkar
-    return toupper(*str);
-}
-
-char ask_question_menu(void)
+void event_loop(warehouse_t *warehouse)
 {
     char *menu = "[A] Add Merchandise\n"
                  "[L] List Merchandise\n"
@@ -88,21 +73,14 @@ char ask_question_menu(void)
                  "[-] Remove From Shopping Cart\n"
                  "[=] Calculate Cost of Shopping Cart\n"
                  "[O] Checkout Shopping Cart\n"
-                 "[Q] Quit program\n";
-    answer_t answer = ask_question(menu, correct_letter, (convert_func *) toupper_modified);
-    char answer_mod = answer.character;
-    return answer_mod;
-}
+                 "[Q] Quit program\n"
+                 "> ";
 
-void event_loop(warehouse_t *warehouse)
-{
     char answer;
-
-    // lite oklart hur det funkar med +-=, kika på det
 
     do
     {
-        answer = ask_question_menu();
+        answer = ask_question_menu(menu);
 
         // TODO: 
         // - hur ska vi tänka kring stora/små bokstäver på input? 
@@ -121,100 +99,104 @@ void event_loop(warehouse_t *warehouse)
             puts("Add Merch");
             char *name = ask_question_string("Name: ");
             char *description = ask_question_string("Description: ");
-            int *price = ask_question_int("Price: ");
+            int price = ask_question_int("Price (SEK): ");
             warehouse_add_merch(warehouse, name, description, price);
+            puts("");
             break;
 
         case 'L': 
             puts("List of All Merch:");
             warehouse_list_merch(warehouse);
+            puts("");
             break;
 
         case 'D':
             puts("Remove Merch");
-            char *merch = ask_question_string("Remove: ");
-            if (warehouse_find_merch(warehouse, merch) == NULL)
+            char *merch_d = ask_question_string("Remove: ");
+            if (warehouse_find_merch(warehouse, merch_d) == NULL)
             {
-                printf("Merch %s not found, try again\n", merch);
+                printf("Merch %s not found, try again\n", merch_d);
                 break;
             }
-            printf("Do you want to remove %s?\n", merch);
-            char *choice = ask_question_string("Y/N: ");
-            if (choice == "Y" || choice == "y")
+            printf("Do you want to remove %s?\n", merch_d);
+            char *choice_d = ask_question_string("Y/N: ");
+            if (strcmp(choice_d, "Y") == 0 || strcmp(choice_d, "y") == 0)
             {
-                bool removed = warehouse_remove_merch(warehouse, merch);
-                if (removed) printf("%s removed\n", merch); // FIXME: ta bort sen för den här checken finns i funktionen redan
+                bool removed = warehouse_remove_merch(warehouse, merch_d);
+                if (removed) printf("%s removed\n", merch_d);
             }
             break;
 
         case 'E':
             puts("Edit Merchandise");
-            char *merch = ask_question_string("Edit: ");
-            if (warehouse_find_merch(warehouse, merch) == NULL)
+            char *merch_e = ask_question_string("Edit: ");
+            if (warehouse_find_merch(warehouse, merch_e) == NULL)
             {
-                printf("Merch %s not found, try again\n", merch);
+                printf("Merch %s not found, try again\n", merch_e);
                 break;
             }
             char *new_name = ask_question_string("Name of Merch: ");
             char *new_description = ask_question_string("Description of Merch: ");
             int new_price = ask_question_int("Price of Merch (SEK): ");
-            printf("Is the new information of the merch %s correct?\nName: %s\nDescription: %s\nPrice: %d\n", merch, new_name, new_description, new_price);
-            char *choice = ask_question_string("Y/N: ");
-            if (choice == "Y" || choice == "y") warehouse_edit_merch(warehouse, merch, new_name, new_description, new_price);
+            printf("Is the new information of the merch %s correct?\nName: %s\nDescription: %s\nPrice: %d\n", merch_e, new_name, new_description, new_price);
+            char *choice_e = ask_question_string("Y/N: ");
+            if (strcmp(choice_e, "Y") == 0 || strcmp(choice_e, "y") == 0) warehouse_edit_merch(warehouse, merch_e, new_name, new_description, new_price);
             break;
 
-        case 'S':
+        case 'S': // FIXME: funkar inte :(
             puts("Show Stock of Merch");
-            char *merch = ask_question_string("Choose Merch: ");
-            if (warehouse_find_merch(warehouse, merch) == NULL)
+            char *merch_s = ask_question_string("Choose Merch: ");
+            if (warehouse_find_merch(warehouse, merch_s) == NULL)
             {
-                printf("Merch %s not found, try again\n", merch);
+                printf("Merch %s not found, try again\n", merch_s);
                 break;
             }
-            warehouse_show_stock(warehouse, merch);
+            warehouse_show_stock(warehouse, merch_s);
             break;
 
-        case 'P':
+        case 'P': // FIXME: testa denna är show stock funkar
             puts("Replenish Merchandise");
-            char *merch = ask_question_string("Merch to replenish: ");
-            if (warehouse_find_merch(warehouse, merch) == NULL)
+            char *merch_p_input = ask_question_string("Merch to replenish: ");
+            merch_t *merch_p = warehouse_find_merch(warehouse, merch_p_input);
+            if (merch_p == NULL)
             {
-                printf("Merch %s not found, try again\n", merch);
+                printf("Merch %s not found, try again\n", merch_p_input);
                 break;
             }
-            char *shelf = ask_question_string("Store on shelf: ");
-            if (warehouse_find_shelf(warehouse, shelf) == NULL)
-            {
-                printf("Shelf %s not found, try again\n", shelf);
-                break;
-            }
+            char *shelf_p = ask_question_string("Store on shelf: ");
             int quantity = ask_question_int("Quantity to add: ");
-            warehouse_replenish_stock(warehouse, shelf, merch, quantity);
+            warehouse_replenish_stock(warehouse, shelf_p, merch_p, quantity);
             break;
 
-        // case 'C':
+        case 'C':
+            puts("Create Shopping Cart");
         //     warehouse_create_cart(warehouse);
-        //     break;
+            break;
 
-        // case 'R':
+        case 'R':
+            puts("Remove Shopping Cart");
         //     warehouse_remove_cart(warehouse, key);
-        //     break;
+            break;
         
-        // case '+':
+        case '+':
+            puts("Add to Shopping Cart");
         //     warehouse_add_to_cart(warehouse->carts, cart, merch, quantity);
-        //     break;
+            break;
         
-        // case '-':
+        case '-':
+            puts("Remove From Shopping Cart");
         //     warehouse_remove_from_cart(warehouse, cart, merch, quantity);
-        //     break;
+            break;
         
-        // case '=':
+        case '=':
+            puts("Calculate Cost");
         //     warehouse_calculate_cost(warehouse->carts, cart);
-        //     break;
+            break;
         
-        // case 'O':
+        case 'O':
+            puts("Checkout Shopping Cart");
         //     warehouse_checkout(warehouse, cart);
-        //     break;
+            break;
 
         case 'Q':
             // nothing to do, the loop condition ends the program
@@ -227,16 +209,4 @@ void event_loop(warehouse_t *warehouse)
         
     } while (answer != 'Q');
     
-}
-
-// FIXME: main borde kanske vara i en fil som bara heter main.c
-// så låter man hela den här modulen med ui grejer vara separat?
-int main(void)
-{
-    warehouse_t *warehouse = warehouse_create();
-    // TODO: skapa några varor till databasen
-    event_loop(warehouse);
-    warehouse_destroy(warehouse);
-    
-    return 0; 
 }

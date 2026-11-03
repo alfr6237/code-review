@@ -9,6 +9,7 @@ COV = --coverage
 vpath %.c generic_utils	
 vpath %.c business_logic
 vpath %.c tests
+vpath %.c user_interface
 
 # all: webstore_backend_tests
 # 	./webstore_backend_tests
@@ -19,27 +20,30 @@ vpath %.c tests
 %_tests: $(OBJECTS) %_tests.c
 	$(CC) $(FLAGS) $^ -lcunit -o $@
 
+program: main.o ui.o $(OBJECTS)
+	$(CC) $(FLAGS) $^ -o $@
+
+run: program
+	./program
+
 test: webstore_backend_tests
 	./webstore_backend_tests
-
-# valgrind_webstoreback: webstore_backend_tests
-# 	valgrind --leak-check=full ./webstore_backend_tests
 
 valgrind: webstore_backend_tests
 	valgrind --leak-check=full ./webstore_backend_tests
 
-# webstoreback_cov: webstore_backend_tests
-# 	make $<
-# 	gcov -b $(COV)
-# 	gcovr $(COV)
+COV_TARGET = merch_stock
 
-# cov: 
-# 	make webstoreback_cov
+coverage: webstore_backend_tests
+	rm -f *.gcda *.gcov
+	./webstore_backend_tests
+	gcov -b $(COV_TARGET).o
+	gcovr -r . --filter '.*$(COV_TARGET)\.c' --txt-metric branch
 
-gprof: clean
-	$(CC) $(GPROF_OPTIONS) generic_utils/freq_count.c generic_utils/hash_table.c generic_utils/hash_table_iterator.c -o freq_new
-	./freq_new 16k-words.txt
-	gprof freq_new gmon.out > analysis.txt
+# gprof: clean
+# 	$(CC) $(GPROF_OPTIONS) generic_utils/freq_count.c generic_utils/hash_table.c generic_utils/hash_table_iterator.c -o freq_new
+# 	./freq_new 16k-words.txt
+# 	gprof freq_new gmon.out > analysis.txt
 
 clean:
 	rm -f *.o webstore_backend_tests
@@ -47,4 +51,4 @@ clean:
 	rm -f *.gcno
 	rm -f *.c.gcov
 
-.PHONY: all test clean all gprof
+.PHONY: test valgrind coverage clean program
