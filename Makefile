@@ -2,7 +2,7 @@ CC = gcc
 GPROF_OPTIONS  = -Wall -Wextra -pedantic -g -pg
 FLAGS = -g -Wall -Wextra --coverage
 <<<<<<< HEAD
-OBJECTS = hash_table_iterator.o hash_table.o linked_list.o list_iterator.o merch_stock.o
+OBJECTS = hash_table_iterator.o hash_table.o linked_list.o list_iterator.o merch_stock.o utils.o
 # add cart_calc.o ^
 # COV = linked_list.gcda list_iterator.gcda hash_table.gcda hash_table_iterator.gcda 
 =======
