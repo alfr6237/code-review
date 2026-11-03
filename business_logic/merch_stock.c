@@ -193,7 +193,7 @@ void warehouse_edit_merch(warehouse_t *wh, char *key, char *new_name, char* new_
 
 shelf_t *warehouse_find_shelf(ioopm_list_t *list, char *shelf)
 {
-  shelf_t *result = NULL; 
+  shelf_t *result = NULL;
   if (list == NULL)
   {
     return result;
@@ -206,7 +206,6 @@ shelf_t *warehouse_find_shelf(ioopm_list_t *list, char *shelf)
     char *shelf_name = current_shelf->shelf;
 
     if (strcmp(shelf_name, shelf) == 0) {
-    {
       result = current_shelf;
       break;
     }
@@ -215,7 +214,6 @@ shelf_t *warehouse_find_shelf(ioopm_list_t *list, char *shelf)
 
   ioopm_list_iterator_destroy(it);
   return result;
-}
 }
 
 void warehouse_replenish_stock(warehouse_t *wh, char *shelf, merch_t *merch, size_t add_quant)
