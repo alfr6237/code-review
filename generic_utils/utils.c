@@ -22,16 +22,25 @@ bool is_valid_char(char *str) {
     }
   if (*(str) == 'L' ||
   *(str) == 'l' ||
-  *(str) == 'T' ||
-  *(str) == 't' ||
+  *(str) == 'D' ||
+  *(str) == 'd' ||
+  *(str) == 'E' ||
+  *(str) == 'e' ||
+  *(str) == 'S' ||
+  *(str) == 's' ||
+  *(str) == 'P' ||
+  *(str) == 'p' ||
+  *(str) == 'C' ||
+  *(str) == 'c' ||
   *(str) == 'R' ||
   *(str) == 'r' ||
-  *(str) == 'G' ||
-  *(str) == 'g' ||
-  *(str) == 'H' ||
-  *(str) == 'h' ||
-  *(str) == 'A' ||
-  *(str) == 'a') {
+  *(str) == '+' ||
+  *(str) == '-' ||
+  *(str) == '=' ||
+  *(str) == 'O' ||
+  *(str) == 'o' ||
+  *(str) == 'Q' ||
+  *(str) == 'q') {
   return true; 
 } else {
     return false;
@@ -103,7 +112,7 @@ bool is_number(char *str) {
 //     return true;
 // }
 
-   void clear_input_buffer(void) {
+void clear_input_buffer(void) {
 
     int c;
         do {
@@ -112,7 +121,7 @@ bool is_number(char *str) {
 
     while (c != '\n' && c != EOF);
      putchar('\n');
-    }
+}
 
 int read_string(char *buf, int buf_siz) {
     int result = 0;
@@ -171,7 +180,8 @@ char *ask_question_shelf(char *question) {
 
 char ask_question_menu(char *question) {
     char c = ask_question(question, is_valid_char, convert_char).character;
-    return toupper(c);
+    // return toupper(c);
+    return c; 
 }
 
 answer_t ask_question(char *question, check_func *check, convert_func *convert) {
