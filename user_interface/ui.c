@@ -61,14 +61,26 @@ void warehouse_show_stock(warehouse_t *wh, char *key)
 
 void event_loop(warehouse_t *warehouse)
 {
-    char answer;
-    (void) warehouse;
+    char *menu = "[A] Add Merchandise\n"
+                 "[L] List Merchandise\n"
+                 "[D] Remove Merchandise\n"
+                 "[E] Edit Merchandise\n"
+                 "[S] Show Stock\n"
+                 "[P] Replenish Merchandise\n"
+                 "[C] Create Shopping Cart\n"
+                 "[R] Remove Shopping Cart\n"
+                 "[+] Add To Shopping Cart\n"
+                 "[-] Remove From Shopping Cart\n"
+                 "[=] Calculate Cost of Shopping Cart\n"
+                 "[O] Checkout Shopping Cart\n"
+                 "[Q] Quit program\n"
+                 "> ";
 
-    // lite oklart hur det funkar med +-=, kika på det
+    char answer;
 
     do
     {
-        answer = menu_answer_char();
+        answer = ask_question_menu(menu);
 
         // TODO: 
         // - hur ska vi tänka kring stora/små bokstäver på input? 
@@ -83,105 +95,108 @@ void event_loop(warehouse_t *warehouse)
 
         switch (answer)
         {
-        // case 'A': // konfirmationssträng behövs
-        //     puts("Add Merch");
-        //     char *name = ask_question_string("Name: ");
-        //     char *description = ask_question_string("Description: ");
-        //     int price = ask_question_int("Price: ");
-        //     warehouse_add_merch(warehouse, name, description, price);
-        //     break;
+        case 'A': // konfirmationssträng behövs
+            puts("Add Merch");
+            char *name = ask_question_string("Name: ");
+            char *description = ask_question_string("Description: ");
+            int price = ask_question_int("Price (SEK): ");
+            warehouse_add_merch(warehouse, name, description, price);
+            puts("");
+            break;
 
-        // case 'L': 
-        //     puts("List of All Merch:");
-        //     warehouse_list_merch(warehouse);
-        //     break;
+        case 'L': 
+            puts("List of All Merch:");
+            warehouse_list_merch(warehouse);
+            puts("");
+            break;
 
-        // case 'D':
-        //     puts("Remove Merch");
-        //     char *merch_d = ask_question_string("Remove: ");
-        //     if (warehouse_find_merch(warehouse, merch_d) == NULL)
-        //     {
-        //         printf("Merch %s not found, try again\n", merch_d);
-        //         break;
-        //     }
-        //     printf("Do you want to remove %s?\n", merch_d);
-        //     char *choice_d = ask_question_string("Y/N: ");
-        //     if (strcmp(choice_d, "Y") == 0 || strcmp(choice_d, "y") == 0)
-        //     {
-        //         bool removed = warehouse_remove_merch(warehouse, merch_d);
-        //         if (removed) printf("%s removed\n", merch_d); // FIXME: ta bort sen för den här checken finns i funktionen redan
-        //     }
-        //     break;
+        case 'D':
+            puts("Remove Merch");
+            char *merch_d = ask_question_string("Remove: ");
+            if (warehouse_find_merch(warehouse, merch_d) == NULL)
+            {
+                printf("Merch %s not found, try again\n", merch_d);
+                break;
+            }
+            printf("Do you want to remove %s?\n", merch_d);
+            char *choice_d = ask_question_string("Y/N: ");
+            if (strcmp(choice_d, "Y") == 0 || strcmp(choice_d, "y") == 0)
+            {
+                bool removed = warehouse_remove_merch(warehouse, merch_d);
+                if (removed) printf("%s removed\n", merch_d);
+            }
+            break;
 
-        // case 'E':
-        //     puts("Edit Merchandise");
-        //     char *merch_e = ask_question_string("Edit: ");
-        //     if (warehouse_find_merch(warehouse, merch_e) == NULL)
-        //     {
-        //         printf("Merch %s not found, try again\n", merch_e);
-        //         break;
-        //     }
-        //     char *new_name = ask_question_string("Name of Merch: ");
-        //     char *new_description = ask_question_string("Description of Merch: ");
-        //     int new_price = ask_question_int("Price of Merch (SEK): ");
-        //     printf("Is the new information of the merch %s correct?\nName: %s\nDescription: %s\nPrice: %d\n", merch_e, new_name, new_description, new_price);
-        //     char *choice_e = ask_question_string("Y/N: ");
-        //     if (strcmp(choice_e, "Y") == 0 || strcmp(choice_e, "y") == 0) warehouse_edit_merch(warehouse, merch_e, new_name, new_description, new_price);
-        //     break;
+        case 'E':
+            puts("Edit Merchandise");
+            char *merch_e = ask_question_string("Edit: ");
+            if (warehouse_find_merch(warehouse, merch_e) == NULL)
+            {
+                printf("Merch %s not found, try again\n", merch_e);
+                break;
+            }
+            char *new_name = ask_question_string("Name of Merch: ");
+            char *new_description = ask_question_string("Description of Merch: ");
+            int new_price = ask_question_int("Price of Merch (SEK): ");
+            printf("Is the new information of the merch %s correct?\nName: %s\nDescription: %s\nPrice: %d\n", merch_e, new_name, new_description, new_price);
+            char *choice_e = ask_question_string("Y/N: ");
+            if (strcmp(choice_e, "Y") == 0 || strcmp(choice_e, "y") == 0) warehouse_edit_merch(warehouse, merch_e, new_name, new_description, new_price);
+            break;
 
-        // case 'S':
-        //     puts("Show Stock of Merch");
-        //     char *merch_s = ask_question_string("Choose Merch: ");
-        //     if (warehouse_find_merch(warehouse, merch_s) == NULL)
-        //     {
-        //         printf("Merch %s not found, try again\n", merch_s);
-        //         break;
-        //     }
-        //     warehouse_show_stock(warehouse, merch_s);
-        //     break;
+        case 'S': // FIXME: funkar inte :(
+            puts("Show Stock of Merch");
+            char *merch_s = ask_question_string("Choose Merch: ");
+            if (warehouse_find_merch(warehouse, merch_s) == NULL)
+            {
+                printf("Merch %s not found, try again\n", merch_s);
+                break;
+            }
+            warehouse_show_stock(warehouse, merch_s);
+            break;
 
-        // case 'P':
-        //     puts("Replenish Merchandise");
-        //     char *merch_p_input = ask_question_string("Merch to replenish: ");
-        //     merch_t *merch_p = warehouse_find_merch(warehouse, merch_p_input);
-        //     if (merch_p == NULL)
-        //     {
-        //         printf("Merch %s not found, try again\n", merch_p_input);
-        //         break;
-        //     }
-        //     char *shelf_p = ask_question_string("Store on shelf: ");
-        //     if (warehouse_find_shelf(merch_p->locs, shelf_p) == NULL)
-        //     {
-        //         printf("Shelf %s not found, try again\n", shelf_p);
-        //         break;
-        //     }
-        //     int quantity = ask_question_int("Quantity to add: ");
-        //     warehouse_replenish_stock(warehouse, shelf_p, merch_p, quantity);
-        //     break;
+        case 'P': // FIXME: testa denna är show stock funkar
+            puts("Replenish Merchandise");
+            char *merch_p_input = ask_question_string("Merch to replenish: ");
+            merch_t *merch_p = warehouse_find_merch(warehouse, merch_p_input);
+            if (merch_p == NULL)
+            {
+                printf("Merch %s not found, try again\n", merch_p_input);
+                break;
+            }
+            char *shelf_p = ask_question_string("Store on shelf: ");
+            int quantity = ask_question_int("Quantity to add: ");
+            warehouse_replenish_stock(warehouse, shelf_p, merch_p, quantity);
+            break;
 
-        // case 'C':
+        case 'C':
+            puts("Create Shopping Cart");
         //     warehouse_create_cart(warehouse);
-        //     break;
+            break;
 
-        // case 'R':
+        case 'R':
+            puts("Remove Shopping Cart");
         //     warehouse_remove_cart(warehouse, key);
-        //     break;
+            break;
         
-        // case '+':
+        case '+':
+            puts("Add to Shopping Cart");
         //     warehouse_add_to_cart(warehouse->carts, cart, merch, quantity);
-        //     break;
+            break;
         
-        // case '-':
+        case '-':
+            puts("Remove From Shopping Cart");
         //     warehouse_remove_from_cart(warehouse, cart, merch, quantity);
-        //     break;
+            break;
         
-        // case '=':
+        case '=':
+            puts("Calculate Cost");
         //     warehouse_calculate_cost(warehouse->carts, cart);
-        //     break;
+            break;
         
-        // case 'O':
+        case 'O':
+            puts("Checkout Shopping Cart");
         //     warehouse_checkout(warehouse, cart);
-        //     break;
+            break;
 
         case 'Q':
             // nothing to do, the loop condition ends the program

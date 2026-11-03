@@ -20,7 +20,10 @@ bool is_valid_char(char *str) {
     if (strlen(str) != 1) {
         return false;
     }
-  if (*(str) == 'L' ||
+  if (
+  *(str) == 'A' ||
+  *(str) == 'a' ||
+  *(str) == 'L' ||
   *(str) == 'l' ||
   *(str) == 'D' ||
   *(str) == 'd' ||
@@ -181,18 +184,22 @@ char *ask_question_shelf(char *question) {
 char ask_question_menu(char *question) {
     char c = ask_question(question, is_valid_char, convert_char).character;
     // return toupper(c);
-    return c; 
+    if (c == 43 || c == 45 || c == 61)
+    {
+        return c;
+    }
+    return toupper(c); 
 }
 
 answer_t ask_question(char *question, check_func *check, convert_func *convert) {
     char buf [255];
     while (true) {
-        printf("%s\n", question);
+        printf("%s", question);
         read_string(buf, 255);
         if (check(buf)) {
             return convert(buf);
         }
-            printf("Invalid\n");
+            printf("Invalid choice\n");
         }
 }
 
