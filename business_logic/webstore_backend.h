@@ -76,10 +76,16 @@ void warehouse_replenish_stock(warehouse_t *wh, char *shelf, merch_t *merch, siz
 /// @return a hashtable where key is merch's name and value it's quantity
 shopping_cart_t *warehouse_create_cart(warehouse_t *wh);
 
+/// @brief Finds the shopping cart by traversing the shopping carts in the warehouse
+/// @param wh The warehouse that holds shopping carts
+/// @param cart_id shopping carts identifier
+/// @return a shopping cart or NULL if not found
+shopping_cart_t *warehouse_find_shopping_cart(warehouse_t *wh, size_t cart_id, size_t *index);
+
 /// @brief removes a shopping cart from the system
 /// @param wh warehouse
 /// @param key shopping cart to be removed
-void warehouse_remove_cart(warehouse_t *wh, size_t cart_id);
+void warehouse_remove_cart(warehouse_t *wh, size_t cart_id, size_t *index);
 
 /// @brief add some quantity of merch to specific shopping cart
 /// @param cart_ht hashtable where all shopping carts are stored

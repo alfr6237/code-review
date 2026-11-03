@@ -1,10 +1,10 @@
 CC = gcc
 GPROF_OPTIONS  = -Wall -Wextra -pedantic -g -pg
-FLAGS = -g -Wall -Wextra --coverage
+FLAGS = -g -Wall -Wextra
 PFLAGS = -g -Wall -Wextra -pg
 # add cart_calc.o again
 OBJECTS = hash_table_iterator.o hash_table.o linked_list.o list_iterator.o merch_stock.o cart_calc.o
-COV = webstore_backend.gcda 
+COV = --coverage
 
 vpath %.c generic_utils	
 vpath %.c business_logic
@@ -42,8 +42,7 @@ gprof: clean
 	gprof freq_new gmon.out > analysis.txt
 
 clean:
-	rm -f *.o
-	rm -f test
+	rm -f *.o webstore_backend_tests
 	rm -f *.gcda
 	rm -f *.gcno
 	rm -f *.c.gcov

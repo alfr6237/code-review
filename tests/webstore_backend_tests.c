@@ -211,6 +211,7 @@ void test_edit_merch_same_stock()
 
 void test_add_to_cart() {
   //initilazing
+  size_t index = 0;
   warehouse_t *warehouse = warehouse_create();
   shopping_cart_t *cart = warehouse_create_cart(warehouse);
   warehouse_add_merch(warehouse, "Bohnanza", "Epic board game", 200);
@@ -225,11 +226,12 @@ void test_add_to_cart() {
   CU_ASSERT_EQUAL(result.si, 10);
 
   //remove from cart and destroy the warehouse
-  warehouse_remove_cart(warehouse, cart->id);
+  warehouse_remove_cart(warehouse, cart->id, &index);
   warehouse_destroy(warehouse);
 }
 
 void test_add_several_to_cart() {
+  size_t index = 0;
   warehouse_t *warehouse = warehouse_create();
   shopping_cart_t *cart = warehouse_create_cart(warehouse);
   warehouse_add_merch(warehouse, "Bohnanza", "Epic board game", 200);
@@ -256,7 +258,7 @@ void test_add_several_to_cart() {
    }
    ioopm_hash_table_iterator_destroy(it);
 
-   warehouse_remove_cart(warehouse, cart->id);
+   warehouse_remove_cart(warehouse, cart->id, &index);
 }
 
 
@@ -266,6 +268,7 @@ void test_add_several_to_cart() {
 void test_remove_from_cart() {
    warehouse_t *warehouse = warehouse_create();
   shopping_cart_t *cart = warehouse_create_cart(warehouse);
+  size_t index = 0;
   warehouse_add_merch(warehouse, "Bohnanza", "Epic board game", 200);
   size_t add_quant = 10;
   merch_t *merch1 = warehouse_find_merch(warehouse, "Bohnanza");
@@ -279,13 +282,14 @@ void test_remove_from_cart() {
    CU_ASSERT_FALSE(ioopm_hash_table_has_key(cart->items, string_elem("Bohnanza")));
 
    //free memory
-   warehouse_remove_cart(warehouse, cart->id);
+   warehouse_remove_cart(warehouse, cart->id, &index);
    warehouse_destroy(warehouse);
 }
 
 void test_remove_several_from_cart() {
    warehouse_t *warehouse = warehouse_create();
   shopping_cart_t *cart = warehouse_create_cart(warehouse);
+  size_t index = 0;
   warehouse_add_merch(warehouse, "Bohnanza", "Epic board game", 200);
   warehouse_add_merch(warehouse, "Catan", "Epic board game", 200);
   warehouse_add_merch(warehouse, "Small World", "Epic board game", 200);
@@ -322,8 +326,17 @@ void test_remove_several_from_cart() {
 
 
    //free memory
-   warehouse_remove_cart(warehouse, cart->id);
+   warehouse_remove_cart(warehouse, cart->id, &index);
    warehouse_destroy(warehouse);
+} //FIXME: göra teser för remove_cart funktionen  
+void test_remove_cart() {
+  size_t index = 0;
+  warehouse_t *warehouse = warehouse_create();
+  shopping_cart_t *cart = warehouse_create_cart(warehouse);
+  size_t cart_id = cart->id;
+  warehouse_remove_cart(warehouse, cart->id, &index);
+  CU_ASSERT_EQUAL(warehouse_find_shopping_cart(warehouse, cart_id, &index), NULL);
+  warehouse_destroy(warehouse);
 }
 
 
@@ -361,6 +374,7 @@ int main() {
     (CU_add_test(my_test_suite, "add several to cart", test_add_several_merch) == NULL) ||
     (CU_add_test(my_test_suite, "remove from cart", test_remove_from_cart) == NULL) ||
     (CU_add_test(my_test_suite, "remove several from cart", test_remove_several_from_cart) == NULL) ||
+    (CU_add_test(my_test_suite, "remove from cart", test_remove_cart) == NULL) ||
     0
   )
     {
